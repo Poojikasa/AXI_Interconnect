@@ -1,0 +1,30 @@
+class axi_slave_agent_top extends uvm_env;
+`uvm_component_utils(axi_slave_agent_top)
+
+axi_slave_agent agenth[];
+env_config m_cfg;
+//axi_slave_config slv_cfg;
+
+function new(string name="axi_agent_slave_top",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+super.build_phase(phase);
+if(!uvm_config_db #(env_config)::get(this,"","env_config",m_cfg))
+`uvm_fatal("axi_top","cannot get axi_top")
+
+if(m_cfg.has_axi_slave_agent)
+begin
+agenth=new[m_cfg.no_of_agents];
+
+foreach(agenth[i])
+begin
+agenth[i]=axi_slave_agent::type_id::create($sformatf("agenth[%0d]",i),this);
+uvm_config_db #(axi_slave_config)::set(this,$sformatf("agenth[%0d]*",i),"axi_slave_config",m_cfg.slv_cfg[i]);
+
+end
+end
+endfunction
+
+endclass

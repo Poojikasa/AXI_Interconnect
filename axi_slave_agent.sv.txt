@@ -1,0 +1,28 @@
+class axi_slave_agent extends uvm_agent;
+`uvm_component_utils(axi_slave_agent)
+
+axi_slave_driver s_drv;
+axi_slave_monitor s_mon;
+axi_slave_sequencer s_seq;
+axi_slave_config slv_cfg;
+
+function new(string name="axi_slave_agent",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+if(!uvm_config_db #(axi_slave_config)::get(this,"","axi_slave_config",slv_cfg))
+`uvm_fatal("slv_agent","cannot get slv_agent")
+
+s_mon=axi_slave_monitor::type_id::create("s_mon",this);
+if(slv_cfg.is_active == UVM_ACTIVE)
+begin
+
+s_drv=axi_slave_driver::type_id::create("s_drv",this);
+s_seq=axi_slave_sequencer::type_id::create("s_seq",this);
+end
+	super.build_phase(phase);
+
+endfunction
+endclass
+
