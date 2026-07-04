@@ -1,0 +1,331 @@
+`timescale 1ns/1ps
+//slave interface
+
+interface axi_sif(input bit clk,bit rst1);
+	
+	//Write Address Signals
+	logic [7:0] AWID;
+	logic [31:0] AWADDR;
+	logic [7:0] AWLEN;
+	logic [2:0] AWSIZE;
+	logic [1:0] AWBURST;
+	bit AWVALID;
+	bit AWREADY;
+        logic AWLOCK;
+        logic[3:0] AWCACHE;
+        logic[2:0]AWPROT;
+        logic[3:0]AWQOS;
+        logic[3:0]AWREGION;
+        logic AWUSER;
+        
+       
+
+	//Write Data Channels Signals
+	logic [7:0] WID;
+	logic [31:0] WDATA;
+	logic [3:0] WSTRB;
+	logic WLAST;
+	bit WVALID;
+	bit WREADY;
+        logic WUSER;
+
+	//Write Response Channel Signals
+	logic [7:0] BID;
+	logic [1:0] BRESP;
+	bit BVALID;
+	bit BREADY;
+        logic BUSER;
+	
+	// Read Address Channel Signals
+	logic [7:0] ARID;
+	logic [31:0] ARADDR;
+	logic [7:0] ARLEN;
+	logic [2:0] ARSIZE;
+	logic [1:0] ARBURST;
+	bit ARVALID;
+	bit ARREADY;
+        logic ARLOCK;
+        logic[3:0] ARCACHE;
+        logic[2:0]ARPROT;
+        logic[3:0]ARQOS;
+        logic[3:0]ARREGION;
+        logic ARUSER;
+
+
+	//Read Data Channel Signals
+	logic [7:0] RID;
+	logic [31:0] RDATA;
+	logic [1:0] RRESP;
+	logic RLAST;
+	bit RVALID;
+	bit RREADY;
+        logic RUSER;
+
+	// Master Driver Clocking Block
+
+        clocking slv_drv_cb @(posedge clk);
+		default input #1 output #1;
+		
+		// Write Address Signals
+		input AWID;
+		input AWADDR;
+		input AWLEN;
+		input AWSIZE;
+		input AWBURST;
+		
+		input AWVALID;
+		output AWREADY;
+
+                input AWLOCK;
+                input  AWCACHE;
+                input AWPROT;
+                input AWQOS;
+                input AWUSER;
+                input AWREGION;
+
+
+		
+		// Write Data Signals
+		input WID;
+		input WDATA;
+		input WSTRB;
+		input WLAST;
+		
+		input WVALID;
+		output WREADY;
+                input WUSER;
+
+		//Write Response Signals
+		output BID;
+		output BRESP;
+		
+		output BVALID;
+		input BREADY;
+		output BUSER;
+
+		// Read Address Signals
+		input ARID;
+		input ARADDR;
+		input ARLEN;
+		input ARSIZE;
+		input ARBURST;
+	
+		input ARVALID;
+		output ARREADY;
+              
+                input ARLOCK;
+                input  ARCACHE;
+                input ARPROT;
+                input ARQOS;
+                input ARUSER;
+                input ARREGION;
+
+
+		
+		// Read Data Signals
+		output RID;
+		output RDATA;
+		output RRESP;
+		output RLAST;
+		
+		output RVALID;
+                output RUSER;
+		input RREADY;
+
+	endclocking
+
+
+
+  
+	
+       	clocking slv_mon_cb @(posedge clk);
+		default input #1 output #1;
+		
+		// Write Address Signals
+                input rst1;
+		input AWID;
+		input AWADDR;
+		input AWLEN;
+		input AWSIZE;
+		input AWBURST;
+		
+		input AWVALID;
+		input AWREADY;
+                
+                input AWLOCK;
+                input  AWCACHE;
+                input AWPROT;
+                input AWQOS;
+                input AWUSER;
+                input AWREGION;
+
+
+		
+		// Write Data Signals
+		input WID;
+		input WDATA;
+		input WSTRB;
+		input WLAST;
+		
+		input WVALID;
+		input WREADY;
+                input WUSER;
+
+		//Write Response Signals
+		input BID;
+		input BRESP;
+		
+		input BVALID;
+		input BREADY;
+		input BUSER;
+		
+
+		// Read Address Signals
+		input ARID;
+		input ARADDR;
+		input ARLEN;
+		input ARSIZE;
+		input ARBURST;
+	
+		input ARVALID;
+		input ARREADY;
+
+                 input ARLOCK;
+                input  ARCACHE;
+                input ARPROT;
+                input ARQOS;
+                input ARUSER;
+                input ARREGION;
+
+
+		
+		// Read Data Signals
+		input RID;
+		input RDATA;
+		input RRESP;
+		input RLAST;
+		
+		input RVALID;
+		input RREADY;
+                input RUSER;
+
+	endclocking
+        
+ 	modport SLV_DRV (clocking slv_drv_cb,input rst1);
+        modport SLV_MON (clocking slv_mon_cb,input rst1);
+
+
+/*    when valid is high until ready high control signals should be stable
+    property awvalid;
+      @(posedge clk) $rose(AWVALID) |-> $stable(AWID) && $stable (AWLEN) && $stable (AWBURST) && $stable (AWSIZE) && (AWADDR) until AWREADY[->1];
+      endproperty
+      
+     property valid;
+     @(posedge clk) $rose(WVALID) |-> $stable(WID) && $stable(WDATA) && $stable (WSTRB) && $stable(WLAST) until WREADY[->1];
+     endproperty
+  
+ 
+   property arvalid;
+    @(posedge clk) $rose(ARVALID) |-> $stable(ARID) && $stable (ARLEN) && $stable (ARBURST) && $stable (ARSIZE) && (ARADDR) until ARREADY[->1];
+   endproperty
+
+
+   assert property (awvalid);
+   assert property (valid);
+   assert property (arvalid);
+
+    property bvalid;
+    @(posedge clk) $rose(BVALID) |-> $stable(BID) && $stable (BRESP) until BREADY[->1];
+    endproperty
+ 
+      
+   property rvalid;
+    @(posedge clk) $rose(RVALID) |-> $stable(RID) && $stable (RDATA) && $stable (RLAST)  && (RRESP) until RREADY[->1];
+   endproperty
+
+   assert property (bvalid);
+   assert property (rvalid);
+
+//hanndshaking mechanism
+   property awvalid_awready;
+   @(posedge clk) AWVALID && !AWREADY |=> AWVALID;
+   endproperty 
+   
+   property wvalid_wready;
+   @(posedge clk) WVALID && !WREADY |=> WVALID;
+   endproperty 
+   
+   property arvalid_arready;
+   @(posedge clk) ARVALID && !ARREADY |=> ARVALID;
+   endproperty 
+
+
+   assert property (awvalid_awready);
+   assert property (wvalid_wready);
+   assert property (arvalid_arready);
+
+
+    property bvalid_bready;
+   @(posedge clk) BVALID && !BREADY |=> BVALID;
+   endproperty 
+
+
+   property rvalid_rready;
+   @(posedge clk) RVALID && !RREADY |=> RVALID;
+   endproperty 
+
+   assert property (bvalid_bready);
+   assert property (rvalid_rready);
+
+//wrapping unaligned address not happen
+property R_wrap_type;
+ @(posedge clk) (ARBURST==2) |-> (ARSIZE==1) |-> ARADDR%2==0;
+endproperty
+
+property R_wrap_type1;
+ @(posedge clk) (ARBURST==2) |-> (ARSIZE==2) |-> ARADDR%4==0;
+endproperty
+
+property W_wrap_type;
+ @(posedge clk) (AWBURST==2) |-> (AWSIZE==1) |-> AWADDR%2==0;
+endproperty 
+
+property W_wrap_type1;
+ @(posedge clk) (AWBURST==2) |-> (AWSIZE==2) |-> AWADDR%4==0;
+endproperty
+
+assert property (R_wrap_type);
+assert property (R_wrap_type1);
+assert property (W_wrap_type);
+assert property (W_wrap_type1);
+
+property ar_size;
+@(posedge clk) AWVALID |-> (AWSIZE<3);
+endproperty
+
+property aw_size;
+@(posedge clk) ARVALID |-> (ARSIZE<3);
+endproperty
+
+assert property (ar_size);
+assert property (aw_size);
+
+property W_boundary;
+@(posedge clk) AWVALID|-> (AWLEN+1)*(2**AWSIZE)<4096;
+endproperty
+
+property R_boundary;
+@(posedge clk) ARVALID|-> (ARLEN+1)*(2**ARSIZE)<4096;
+endproperty
+
+assert property (W_boundary);
+assert property (R_boundary);
+
+property W_burst_type_wrap;
+ @(posedge clk) (AWBURST==2)|-> ((AWLEN==1)||(AWLEN==3)||(AWLEN==7)||(AWLEN==15)||(AWLEN==63)||(AWLEN==127)||(AWLEN==255));
+endproperty
+`timescale 1ns/1ps */
+//slave interface
+endinterface
+
+

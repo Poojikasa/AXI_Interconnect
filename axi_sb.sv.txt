@@ -1,0 +1,338 @@
+class sb extends uvm_scoreboard;
+`uvm_component_utils(sb)
+
+uvm_tlm_analysis_fifo #(axi_xtn)axi_agnth[];
+uvm_tlm_analysis_fifo #(axi_xtn)slv_agenth[];
+env_config m_cfg;
+axi_xtn wr_xtn,rd_xtn;
+axi_xtn mst_xtn,slv_xtn;
+static int pkt_rcvd,pkt_cmprd;
+
+axi_xtn q1[$], q2[$];
+
+covergroup write_axi_cg;
+	option.per_instance=1;
+		awaddr_cp:  coverpoint wr_xtn.AWADDR{bins awaddr_bin={[32'h0000_0000:32'h03ff_ffff]};}
+
+		awburst_cp: coverpoint wr_xtn.AWBURST{bins awburst_bin={[0:2]};}
+		awsize_cp : coverpoint wr_xtn.AWSIZE{bins awsize_bin[]={[0:2]};}
+		awlen_cp  : coverpoint wr_xtn.AWLEN{bins awlen_bin={[0:15]};}
+		bresp_cp  : coverpoint wr_xtn.BRESP{bins bresp_bin={0};}
+		
+		WRITE_ADDR_CROSS:cross awburst_cp,awsize_cp,awlen_cp;
+endgroup
+
+covergroup write_axi_cg1 with function sample(int i);
+	option.per_instance=1;
+		wdata_cp : coverpoint wr_xtn.WDATA[i]{bins wdata_bin={[0:'hffff_ffff]};}
+		wstrb_cp : coverpoint wr_xtn.WSTRB[i]{bins wstrobe_bin0={[4'b0001:4'b1111]};}
+
+		WRITE_DATA_CROSS: cross wdata_cp,wstrb_cp;
+endgroup
+
+covergroup read_axi_cg;
+	option.per_instance=1;
+	//	araddr_cp : coverpoint rd_xtn.ARAADR{bins araddr_bin={[32'h0000_0000:32'h03ff_ffff]};}
+		arburst_cp: coverpoint rd_xtn.ARBURST{bins arburst_bin={[0:2]};}
+		arsize_cp : coverpoint rd_xtn.ARSIZE{bins arsize_bin[]={[0:2]};}
+		arlen_cp  : coverpoint rd_xtn.ARLEN{bins arlen_bin={[0:15]};}
+	
+		READ_ADDR_CROSS: cross arburst_cp,arsize_cp,arlen_cp;
+endgroup
+
+covergroup read_axi_cg1 with function sample(int i);
+	option.per_instance=1;
+		rdata_cp : coverpoint rd_xtn.RDATA[i]{bins rdata_bin={[0:'hffff_ffff]};}
+		rresp_cp : coverpoint rd_xtn.RRESP[i]{bins rresp_bin={0};}
+endgroup
+
+	///////////////////////////
+
+covergroup write_axi1_cg;
+	option.per_instance=1;
+		awaddr_cp : coverpoint wr_xtn.AWADDR{bins awaddr_bin={[32'h0000_0000:32'h03ff_ffff]};}
+		awburst_cp: coverpoint wr_xtn.AWBURST{bins awburst_bin={[0:2]};}
+		awsize_cp : coverpoint wr_xtn.AWSIZE{bins awsize_bin[]={[0:2]};}
+		awlen_cp  : coverpoint wr_xtn.AWLEN{bins awlen_bin={[0:11]};}
+		bresp_cp  : coverpoint wr_xtn.BRESP{bins bresp_bin={0};}
+
+		WRITE_ADDR_CROSS: cross awburst_cp,awsize_cp,awlen_cp;
+endgroup
+
+covergroup write_axi1_cg1 with function sample(int i);
+	 option.per_instance=1;
+		wdata_cp : coverpoint wr_xtn.WDATA[i]{bins wdata_bin={[0:'hffff_ffff]};}
+		wstrb_cp : coverpoint wr_xtn.WSTRB[i]{bins wstrobe_bin0={[4'b0001:4'b1111]};}
+
+		WRITE_DATA_CROSS: cross wdata_cp,wstrb_cp;
+endgroup
+
+covergroup read_axi1_cg;
+	option.per_instance=1;
+		araddr_cp : coverpoint rd_xtn.ARADDR{bins araddr_bin={[32'h0000_0000:32'h03ff_ffff]};}
+		arburst_cp: coverpoint rd_xtn.ARBURST{bins arburst_bin={[0:2]};}
+		arsize_cp : coverpoint rd_xtn.ARSIZE{bins arsize_bin[]={[0:2]};}
+		arlen_cp  : coverpoint rd_xtn.ARLEN{bins arlen_bin={[0:11]};}
+	
+		READ_ADDR_CROSS:cross arburst_cp,arsize_cp,arlen_cp;
+endgroup
+
+covergroup read_axi1_cg1 with function sample(int i);
+	option.per_instance=1;
+  		rdata_cp : coverpoint rd_xtn.RDATA[i]{bins rdata_bin={[0:'hffff_ffff]};}
+		rresp_cp : coverpoint rd_xtn.RRESP[i]{bins rresp_bin={0};}
+endgroup
+
+	////////////////////////////
+
+covergroup write_axi2_cg;
+	option.per_instance=1;
+		awaddr_cp : coverpoint wr_xtn.AWBURST{bins awburst_bin={[0:2]};}
+		awburst_cp: coverpoint wr_xtn.AWBURST{bins awburst_bin={[0:2]};}
+		awsize_cp : coverpoint wr_xtn.AWSIZE{bins awsize_bin[]={[0:2]};}
+		awlen_cp  : coverpoint wr_xtn.AWLEN{bins awlen_bin={[0:11]};}
+		bresp_cp  : coverpoint wr_xtn.BRESP{bins bresp_bin={0};}
+
+		WRITE_ADDR_CROSS: cross awburst_cp,awsize_cp,awlen_cp;
+endgroup
+
+	covergroup write_axi2_cg1 with function sample(int i);
+		   option.per_instance=1;
+			wdata_cp  :   coverpoint wr_xtn.WDATA[i]{bins wdata_bin={[0:'hffff_ffff]};}
+			wstrb_cp  :   coverpoint wr_xtn.WSTRB[i]{bins wstrobe_bin0={[4'b0001:4'b1111]};}
+                                                                 //bins wstrobe_bin1={4'b1100};
+                                                                // bins wstrobe_bin2={4'b0011};
+                                                                // bins wstrobe_bin3={4'b1000};
+                                                                 //bins wstrobe_bin4={4'b0100};
+                                                                 //bins wstrobe_bin5={4'b0010};
+                                                                 //bins wstrobe_bin6={4'b0001};
+                                                                // bins wstrobe_bin7={4'b1110};
+                        WRITE_DATA_CROSS: cross wdata_cp,wstrb_cp;
+                endgroup
+		
+		covergroup read_axi2_cg;
+		    option.per_instance=1;
+			araddr_cp:   coverpoint  rd_xtn.ARADDR{bins araddr_bin={[32'h0000_0000:32'h03ff_ffff]} ;}
+							      // bins awaddr_bin1={[32'h0100_0000:32'h01ff_ffff]};
+							      // bins awaddr_bin2={[32'h0200_0000:32'h02ff_ffff]}; 
+							      // bins awaddr_bin3= {[32'h0300_0000:32'h03ff_ffff]} ;}
+			arburst_cp:   coverpoint rd_xtn.ARBURST{bins arburst_bin={[0:2]};}
+			arsize_cp :   coverpoint rd_xtn.ARSIZE{bins arsize_bin[]={[0:2]};}
+			arlen_cp  :   coverpoint rd_xtn.ARLEN{bins arlen_bin={[0:11]};}
+	
+                        READ_ADDR_CROSS: cross arburst_cp,arsize_cp,arlen_cp;
+                endgroup
+		
+		covergroup read_axi2_cg1 with function sample(int i);
+		   option.per_instance=1;
+			rdata_cp  :   coverpoint rd_xtn.RDATA[i]{bins rdata_bin={[0:'hffff_ffff]};}
+			rresp_cp  :   coverpoint rd_xtn.RRESP[i]{bins rresp_bin={0};}
+	
+                endgroup
+////////////////////////////////////////////////////////
+
+ 	covergroup write_axi3_cg;
+		    option.per_instance=1;	
+			awaddr_cp:   coverpoint  wr_xtn.AWADDR{bins awaddr_bin={[32'h0000_0000:32'h03ff_ffff]} ;}
+							      // bins awaddr_bin1={[32'h0100_0000:32'h01ff_ffff]};
+							      // bins awaddr_bin2={[32'h0200_0000:32'h02ff_ffff]}; 
+							      // bins awaddr_bin3= {[32'h0300_0000:32'h03ff_ffff]} ;}
+			awburst_cp:   coverpoint wr_xtn.AWBURST{bins awburst_bin={[0:2]};}
+			awsize_cp :   coverpoint wr_xtn.AWSIZE{bins awsize_bin[]={[0:2]};}
+			awlen_cp  :   coverpoint wr_xtn.AWLEN{bins awlen_bin={[0:11]};}
+			bresp_cp  :   coverpoint wr_xtn.BRESP{bins bresp_bin={0};}
+ 
+                       WRITE_ADDR_CROSS: cross awburst_cp,awsize_cp,awlen_cp;
+                endgroup
+		
+		covergroup write_axi3_cg1 with function sample(int i);
+		   option.per_instance=1;
+			wdata_cp  :   coverpoint wr_xtn.WDATA[i]{bins wdata_bin={[0:'hffff_ffff]};}
+			wstrb_cp  :   coverpoint wr_xtn.WSTRB[i]{bins wstrobe_bin0={[4'b0001:4'b1111]};}
+                                                                 //bins wstrobe_bin1={4'b1100};
+                                                                // bins wstrobe_bin2={4'b0011};
+                                                                // bins wstrobe_bin3={4'b1000};
+                                                                 //bins wstrobe_bin4={4'b0100};
+                                                                 //bins wstrobe_bin5={4'b0010};
+                                                                 //bins wstrobe_bin6={4'b0001};
+                                                                // bins wstrobe_bin7={4'b1110};
+                        WRITE_DATA_CROSS: cross wdata_cp,wstrb_cp;
+                endgroup
+		
+		covergroup read_axi3_cg;
+		    option.per_instance=1;
+			araddr_cp:   coverpoint  rd_xtn.ARADDR{bins araddr_bin={[32'h0000_0000:32'h03ff_ffff]} ;}
+							      // bins awaddr_bin1={[32'h0100_0000:32'h01ff_ffff]};
+							      // bins awaddr_bin2={[32'h0200_0000:32'h02ff_ffff]}; 
+							      // bins awaddr_bin3= {[32'h0300_0000:32'h03ff_ffff]} ;}
+			arburst_cp:   coverpoint rd_xtn.ARBURST{bins arburst_bin={[0:2]};}
+			arsize_cp :   coverpoint rd_xtn.ARSIZE{bins arsize_bin[]={[0:2]};}
+			arlen_cp  :   coverpoint rd_xtn.ARLEN{bins arlen_bin={[0:11]};}
+	
+                        READ_ADDR_CROSS: cross arburst_cp,arsize_cp,arlen_cp;
+                endgroup
+		
+		covergroup read_axi3_cg1 with function sample(int i);
+		   option.per_instance=1;
+			rdata_cp  :   coverpoint rd_xtn.RDATA[i]{bins rdata_bin={[0:'hffff_ffff]};}
+			rresp_cp  :   coverpoint rd_xtn.RRESP[i]{bins rresp_bin={0};}
+	
+                endgroup
+	
+function new(string name="sb",uvm_component parent);
+super.new(name,parent);
+		write_axi_cg=new();
+		write_axi_cg1=new(); 
+		read_axi_cg=new();
+		read_axi_cg1=new();
+
+
+		write_axi1_cg=new();
+		write_axi1_cg1=new(); 
+		read_axi1_cg=new();
+		read_axi1_cg1=new();
+
+
+		write_axi2_cg=new();
+		write_axi2_cg1=new(); 
+		read_axi2_cg=new();
+		read_axi2_cg1=new();
+
+		write_axi3_cg=new();
+		write_axi3_cg1=new(); 
+		read_axi3_cg=new();
+		read_axi3_cg1=new();
+
+endfunction
+
+function void build_phase(uvm_phase phase);
+if(!uvm_config_db #(env_config)::get(this,"","env_config",m_cfg))
+`uvm_fatal("sb","cannot get env config, have you set it?");
+
+axi_agnth=new[m_cfg.no_of_agents];
+slv_agenth=new[m_cfg.no_of_slave_agents];
+
+foreach(axi_agnth[i])
+	axi_agnth[i]=new($sformatf("axi_agnth[%0d]",i),this);
+
+foreach(slv_agenth[i])
+	slv_agenth[i]=new($sformatf("slv_agenth[%0d]",i),this);
+super.build_phase(phase);
+endfunction
+
+task run_phase(uvm_phase phase);
+forever
+	begin
+		fork
+			begin
+				fork:A
+					begin
+						axi_agnth[0].get(wr_xtn);
+						q1.push_back(wr_xtn);
+						write_axi_cg.sample();
+						foreach(wr_xtn.WDATA[i])
+							begin
+								write_axi_cg1.sample(i);
+							end
+					end
+					begin
+						axi_agnth[1].get(wr_xtn);
+						q1.push_back(wr_xtn);
+						write_axi_cg.sample();
+						foreach(wr_xtn.WDATA[i])
+							begin
+								write_axi_cg1.sample(i);
+							end
+																	end
+					begin
+						axi_agnth[2].get(wr_xtn);
+						q1.push_back(wr_xtn);
+						write_axi_cg.sample();
+						foreach(wr_xtn.WDATA[i])
+							begin
+								write_axi_cg1.sample(i);
+							end
+					end
+					begin
+						axi_agnth[3].get(wr_xtn);
+						q1.push_back(wr_xtn);
+						write_axi_cg.sample();
+						foreach(wr_xtn.WDATA[i])
+							begin
+								write_axi_cg1.sample(i);
+							end
+					end
+				join_any
+				disable A;
+
+				fork:B
+					begin
+						slv_agenth[0].get(rd_xtn);
+						q1.push_back(rd_xtn);
+						read_axi_cg.sample();
+						foreach(rd_xtn.WDATA[i])
+							begin
+								read_axi_cg1.sample(i);
+							end
+					end
+					begin
+						slv_agenth[1].get(rd_xtn);
+						q1.push_back(rd_xtn);
+						read_axi_cg.sample();
+						foreach(rd_xtn.WDATA[i])
+							begin
+								read_axi_cg1.sample(i);
+							end
+					end
+					begin
+						slv_agenth[2].get(rd_xtn);
+						q1.push_back(rd_xtn);
+						read_axi_cg.sample();
+						foreach(rd_xtn.WDATA[i])
+							begin
+								read_axi_cg1.sample(i);
+							end
+					end
+					begin
+						slv_agenth[3].get(rd_xtn);
+						q1.push_back(rd_xtn);
+						read_axi_cg.sample();
+						foreach(rd_xtn.WDATA[i])
+							begin
+								read_axi_cg1.sample(i);
+							end
+					end
+					join_any
+					disable B;
+				end
+				join
+
+	pkt_rcvd++;
+				check_data(wr_xtn,rd_xtn);
+				end
+endtask
+
+task check_data(axi_xtn mst_xtn, axi_xtn slv_xtn);
+	if(mst_xtn.compare(slv_xtn))
+		begin
+			`uvm_info("SCOREBOARD22","data compare successfull",UVM_LOW)
+		pkt_cmprd++;
+		end
+	else
+			`uvm_info("SCOREBOARD11","data compare unsuccessfull",UVM_LOW)
+
+endtask
+
+function void report_phase(uvm_phase phase);
+	`uvm_info("SCOREBOARD",$sformatf("No.of packets received:%0d",pkt_rcvd),UVM_LOW);
+
+	`uvm_info("SCOREBOARD",$sformatf("No.of packets received:%0d",pkt_cmprd),UVM_LOW);
+endfunction
+
+
+
+
+
+	
+
+endclass
