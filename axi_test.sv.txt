@@ -1,0 +1,187 @@
+class test extends uvm_test;
+`uvm_component_utils(test)
+
+virtual axi_mif vif;
+virtual axi_sif sif;
+axi_config axi_cfg[];
+axi_slave_config slv_cfg[];
+env_config m_cfg;
+axi_env envh;
+axi_seqs axi_seq;
+
+int no_of_agents=4;
+int no_of_slave_agents=4;
+//int has_axi_agent=1;
+//int has_axi_slave_agent=1;
+
+
+function new(string name="test",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+m_cfg=env_config::type_id::create("m_cfg");
+
+if(m_cfg.has_axi_agent)
+begin
+m_cfg.axi_cfg=new[no_of_agents];
+axi_cfg=new[no_of_agents];
+foreach(axi_cfg[i])
+begin
+axi_cfg[i]=axi_config::type_id::create($sformatf("axi_cfg[%0d]",i));
+axi_cfg[i].is_active=UVM_ACTIVE;
+if(!uvm_config_db #(virtual axi_mif)::get(this,"",$sformatf("axi_mif_%0d",i),axi_cfg[i].vif))
+`uvm_fatal("test","cannot get from vif")
+m_cfg.axi_cfg[i]=axi_cfg[i];
+
+end
+end
+
+
+if(m_cfg.has_axi_slave_agent)
+begin
+m_cfg.slv_cfg=new[no_of_slave_agents];
+slv_cfg=new[no_of_slave_agents];
+foreach(slv_cfg[i])
+begin
+slv_cfg[i]=axi_slave_config::type_id::create($sformatf("slv_cfg[%0d]",i));
+slv_cfg[i].is_active=UVM_ACTIVE;
+if(!uvm_config_db #(virtual axi_sif)::get(this,"",$sformatf("axi_sif_%0d",i),slv_cfg[i].sif))
+`uvm_fatal("test","cannot get from vif")
+
+m_cfg.slv_cfg[i]=slv_cfg[i];
+
+end
+end
+
+//m_cfg.axi_cfg=axi_cfg;
+//m_cfg.slv_cfg=slv_cfg;
+
+
+uvm_config_db #(env_config)::set(this,"*","env_config",m_cfg);
+begin
+super.build_phase(phase);
+envh=axi_env::type_id::create("envh",this);
+end
+endfunction
+
+
+function void end_of_elaboration_phase(uvm_phase phase);
+super.end_of_elaboration_phase(phase);
+uvm_top.print_topology();
+endfunction
+endclass
+
+
+class fixed_test extends test;
+`uvm_component_utils(fixed_test)
+
+axi_seqs_fixed seq,seq1,seq2,seq3;
+bit[1:0]axi_address=2'b00;
+bit[1:0]axi_slave_address=2'b00;
+
+function new(string name="fixed_test",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+uvm_config_db #(bit[1:0])::set(this,"*","axi_address",axi_address);
+uvm_config_db #(bit[1:0])::set(this,"*","axi_slave_address",axi_slave_address);
+
+super.build_phase(phase);
+endfunction
+
+task run_phase(uvm_phase phase);
+phase.raise_objection(this);
+
+seq=axi_seqs_fixed::type_id::create("seq");
+seq1=axi_seqs_fixed::type_id::create("seq1");
+seq2=axi_seqs_fixed::type_id::create("seq2");
+seq3=axi_seqs_fixed::type_id::create("seq3");
+
+fork
+seq.start(envh.axi_top.agnth[0].seq);
+seq1.start(envh.axi_top.agnth[1].seq);
+seq2.start(envh.axi_top.agnth[2].seq);
+seq3.start(envh.axi_top.agnth[3].seq);
+
+join
+#100;
+phase.drop_objection(this);
+endtask
+endclass
+
+class incr_test extends test;
+`uvm_component_utils(incr_test)
+
+axi_seqs_incr seq,seq1,seq2,seq3;
+bit[1:0]axi_address=2'b00;
+bit[1:0]axi_slave_address=2'b00;
+
+function new(string name="incr_test",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+uvm_config_db #(bit[1:0])::set(this,"*","axi_address",axi_address);
+uvm_config_db #(bit[1:0])::set(this,"*","axi_slave_address",axi_slave_address);
+
+//seq_incr=axi_seqs_incr::type_id::create("seq_incr");
+super.build_phase(phase);
+endfunction
+
+task run_phase(uvm_phase phase);
+phase.raise_objection(this);
+seq=axi_seqs_incr::type_id::create("seq");
+seq1=axi_seqs_incr::type_id::create("seq1");
+seq2=axi_seqs_incr::type_id::create("seq2");
+seq3=axi_seqs_incr::type_id::create("seq3");
+
+fork
+seq.start(envh.axi_top.agnth[0].seq);
+seq1.start(envh.axi_top.agnth[1].seq);
+seq2.start(envh.axi_top.agnth[2].seq);
+seq3.start(envh.axi_top.agnth[3].seq);
+join
+#100;
+//#100;
+phase.drop_objection(this);
+endtask
+endclass
+
+class wrap_test extends test;
+`uvm_component_utils(wrap_test)
+
+axi_seqs_wrap seq,seq1,seq2,seq3;
+bit[1:0]axi_address,axi_slave_address;
+
+function new(string name="wrap_test",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+uvm_config_db #(bit[1:0])::set(this,"*","axi_address",axi_address);
+uvm_config_db #(bit[1:0])::set(this,"*","axi_slave_address",axi_slave_address);
+super.build_phase(phase);
+endfunction
+
+task run_phase(uvm_phase phase);
+//axi_address=0;
+//axi_slave_address=0;
+
+phase.raise_objection(this);
+seq=axi_seqs_wrap::type_id::create("seq");
+seq1=axi_seqs_wrap::type_id::create("seq1");
+seq2=axi_seqs_wrap::type_id::create("seq2");
+seq3=axi_seqs_wrap::type_id::create("seq3");
+
+fork
+seq.start(envh.axi_top.agnth[0].seq);
+seq1.start(envh.axi_top.agnth[1].seq);
+seq2.start(envh.axi_top.agnth[2].seq);
+seq3.start(envh.axi_top.agnth[3].seq);
+join
+#100;
+phase.drop_objection(this);
+endtask
+endclass

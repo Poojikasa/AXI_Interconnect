@@ -1,0 +1,33 @@
+class axi_agent extends uvm_agent;
+`uvm_component_utils(axi_agent)
+
+axi_driver drv;
+axi_monitor mon;
+axi_sequencer seq;
+axi_config axi_cfg;
+
+function new(string name="axi_agent",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+super.build_phase(phase);
+if(!uvm_config_db #(axi_config)::get(this,"","axi_config",axi_cfg))
+`uvm_fatal("axi_agent","cannot get axi_agent")
+
+mon=axi_monitor::type_id::create("mon",this);
+if(axi_cfg.is_active == UVM_ACTIVE)
+begin
+
+drv=axi_driver::type_id::create("drv",this);
+seq=axi_sequencer::type_id::create("seq",this);
+end
+endfunction
+
+function void connect_phase(uvm_phase phase);
+super.connect_phase(phase);
+drv.seq_item_port.connect(seq.seq_item_export);
+endfunction
+
+endclass
+

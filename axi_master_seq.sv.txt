@@ -1,0 +1,91 @@
+
+class axi_seqs extends uvm_sequence#(master_xtn);
+`uvm_object_utils(axi_seqs)
+bit [1:0]axi_address,axi_slave_address;
+
+function new(string name="axi_seqs");
+super.new(name);
+endfunction
+endclass
+
+class axi_seqs_fixed extends axi_seqs;
+`uvm_object_utils(axi_seqs_fixed)
+bit[1:0]axi_address,slave_address;
+
+function new(string name="axi_seqs_fixed");
+super.new(name);
+endfunction
+
+
+task body();
+super.body();
+if(!uvm_config_db #(bit[1:0])::get(null,get_full_name(),"axi_address",axi_address))
+`uvm_fatal(get_type_name(),"cannot reset")
+if(!uvm_config_db #(bit[1:0])::get(null,get_full_name(),"axi_slave_address",axi_slave_address))
+`uvm_fatal(get_type_name(),"cannot get")
+
+repeat(10)
+begin
+req=axi_xtn::type_id::create("req");
+start_item(req);
+//assert(req.randomize() with {AWBURST==0;ARBURST==0;write_slave==axi_address;read_slave==axi_slave_address;});
+assert(req.randomize() with { AWBURST==0; ARBURST==0;});
+finish_item(req);
+end
+endtask
+
+endclass
+
+class axi_seqs_incr extends axi_seqs;
+`uvm_object_utils(axi_seqs_incr)
+bit[1:0]axi_address,axi_slave_address;
+
+function new(string name="axi_seqs_incr");
+super.new(name);
+endfunction
+
+
+task body();
+super.body();
+if(!uvm_config_db #(bit[1:0])::get(null,get_full_name(),"axi_address",axi_address))
+`uvm_fatal(get_type_name(),"cannot get")
+if(!uvm_config_db #(bit[1:0])::get(null,get_full_name(),"axi_slave_address",axi_slave_address))
+`uvm_fatal(get_type_name(),"cannot get")
+
+req=axi_xtn::type_id::create("req");
+begin
+start_item(req);
+//assert(req.randomize() with {AWBURST==1;ARBURST==1 ;write_slave==axi_address;read_slave==axi_slave_address;});
+assert(req.randomize() with { AWBURST==1; ARBURST==1;});
+finish_item(req);
+end
+endtask
+
+endclass
+
+class axi_seqs_wrap extends axi_seqs;
+`uvm_object_utils(axi_seqs_wrap)
+bit[1:0]axi_address,axi_slave_address;
+
+function new(string name="axi_seqs_wrap");
+super.new(name);
+endfunction
+
+
+task body();
+super.body();
+if(!uvm_config_db #(bit[1:0])::get(null,get_full_name(),"axi_address",axi_address))
+`uvm_fatal(get_type_name(),"cannot reset")
+if(!uvm_config_db #(bit[1:0])::get(null,get_full_name(),"axi_slave_address",axi_slave_address))
+`uvm_fatal(get_type_name(),"cannot get")
+
+req=axi_xtn::type_id::create("req");
+begin
+start_item(req);
+//assert(req.randomize() with {AWBURST==2;ARBURST==2 ;write_slave==axi_address;read_slave==axi_slave_address;});
+assert(req.randomize() with { AWBURST==2; ARBURST==2;});
+finish_item(req);
+end
+endtask
+
+endclass
