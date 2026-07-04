@@ -1,0 +1,207 @@
+class axi_monitor extends uvm_monitor;
+`uvm_component_utils(axi_monitor)
+
+virtual axi_mif.MST_MON vif;
+axi_config axi_cfg;
+uvm_analysis_port#(axi_xtn)ap_port;
+
+axi_xtn xtn,xtn1,xtn2,xtn3,xtn4;
+axi_xtn q1[$],q2[$];
+semaphore wr_addc=new(1); //write address channel
+semaphore wr_datac=new(1); //write data channel
+semaphore wr_respc=new(1); //write response channel
+semaphore rd_adc=new(1); //read address channel
+semaphore rd_datac=new(1); //read data channel
+semaphore sem1=new(); //write address dependent channel
+semaphore sem2=new(); //write response dependent channel
+semaphore sem3=new(); //read data dependent channel
+
+function new(string name="axi_monitor",uvm_component parent);
+super.new(name,parent);
+ap_port=new("ap_port",this);
+endfunction
+
+function void build_phase(uvm_phase phase);
+super.build_phase(phase);
+if(!uvm_config_db #(axi_config)::get(this,"","axi_config",axi_cfg))
+`uvm_fatal("axi_agent","cannot get axi_agent")
+endfunction
+
+function void connect_phase(uvm_phase phase);
+vif=axi_cfg.vif;
+endfunction
+
+task run_phase(uvm_phase phase);
+forever
+	collect_data();
+endtask
+
+task collect_data();
+fork
+	begin
+	
+
+wr_addc.get(1);
+collect_waddr();//write address channel
+sem1.put(1);
+wr_addc.put(1);
+end
+
+begin
+wr_datac.get(1);
+sem1.get(1);
+collect_wdata(q1.pop_front());//write data channel
+sem2.put(1);
+wr_datac.put(1);
+end
+
+begin
+wr_respc.get(1);
+sem2.get(1);
+collect_wresp();//write response channel
+//sem2.put(1);
+wr_respc.put(1);
+end
+
+begin
+rd_adc.get(1);
+collect_raddr(); //read address channel
+sem3.put(1);
+rd_adc.put(1);
+end
+
+begin
+rd_datac.get(1);
+sem3.get(1);
+collect_rdata(q2.pop_front()); //read data channel
+rd_datac.put(1);
+end
+join_any
+endtask
+
+task collect_waddr();
+xtn=axi_xtn::type_id::create("xtn");
+
+wait(vif.mst_mon_cb.AWVALID && vif.mst_mon_cb.AWREADY)
+	xtn.AWVALID = vif.mst_mon_cb.AWVALID;
+	xtn.AWADDR = vif.mst_mon_cb.AWADDR;
+	xtn.AWSIZE = vif.mst_mon_cb.AWSIZE;
+	xtn.AWID = vif.mst_mon_cb.AWID;
+	xtn.AWLEN = vif.mst_mon_cb.AWLEN;
+	xtn.AWBURST = vif.mst_mon_cb.AWBURST;
+	q1.push_back(xtn);
+	
+	`uvm_info(get_type_name(),$sformatf("Printing from master monitor write address %s",xtn.sprint()),UVM_LOW)
+	ap_port.write(xtn);
+	@(vif.mst_mon_cb);
+endtask
+
+task collect_wdata(axi_xtn xtnh);
+xtn1=xtnh;
+xtn1.cal_addr();
+xtn1.WDATA=new[xtn.AWLEN+1];
+xtn1.WSTRB=new[xtn.WDATA.size()];
+	foreach(xtn1.WDATA[i]) begin
+	wait(vif.mst_mon_cb.WVALID && vif.mst_mon_cb.WREADY)
+	xtn1.WSTRB[i]=vif.mst_mon_cb.WSTRB;
+//monitor stores strobe for that beat.
+//wstrb tells which bytes of 32bit wdata is valid
+if(vif.mst_mon_cb.WSTRB==15)//1111
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA;
+if(vif.mst_mon_cb.WSTRB==8)//1000 stores 8 values
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[31:24];
+
+if(vif.mst_mon_cb.WSTRB==4)
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[23:16];
+
+if(vif.mst_mon_cb.WSTRB==2)//0010 wstrb[0]=1 valid
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[15:8];
+
+if(vif.mst_mon_cb.WSTRB==1)//0001 
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[7:0];
+
+if(vif.mst_mon_cb.WSTRB==7)
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[23:0];
+
+if(vif.mst_mon_cb.WSTRB==14)
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[31:0];
+
+if(vif.mst_mon_cb.WSTRB==12)
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[31:16];
+
+if(vif.mst_mon_cb.WSTRB==3)
+	xtn1.WDATA[i]=vif.mst_mon_cb.WDATA[15:0];
+
+xtn1.WID=vif.mst_mon_cb.WID;
+xtn1.WLAST=vif.mst_mon_cb.WLAST;
+xtn1.WVALID=vif.mst_mon_cb.WVALID;
+ap_port.write(xtn1);
+end
+`uvm_info(get_type_name(),$sformatf("printing from master monitor wdata %s",xtn1.sprint()),UVM_LOW)
+endtask
+
+task collect_wresp();
+
+xtn2=axi_xtn::type_id::create("xtn2");
+wait(vif.mst_mon_cb.BREADY && vif.mst_mon_cb.BVALID)
+xtn2.BRESP=vif.mst_mon_cb.BRESP;
+ap_port.write(xtn2);
+`uvm_info(get_type_name(),$sformatf("printing from the master monitor wresponse %s",xtn2.sprint()),UVM_LOW)
+@(vif.mst_mon_cb);
+
+endtask
+
+task collect_raddr();
+xtn3=axi_xtn::type_id::create("xtn3");
+wait(vif.mst_mon_cb.ARVALID && vif.mst_mon_cb.ARREADY)
+	xtn3.ARVALID=vif.mst_mon_cb.ARVALID;
+	xtn3.ARADDR=vif.mst_mon_cb.ARADDR;
+	xtn3.ARSIZE=vif.mst_mon_cb.ARSIZE;
+	xtn3.ARID=vif.mst_mon_cb.ARID;
+	xtn3.ARLEN=vif.mst_mon_cb.ARLEN;
+	xtn3.ARBURST=vif.mst_mon_cb.ARBURST;
+	q2.push_back(xtn3);
+	
+	`uvm_info(get_type_name(),$sformatf("printing from master monitor read address %s",xtn3.sprint()),UVM_LOW)
+ap_port.write(xtn3);
+@(vif.mst_mon_cb);
+endtask
+
+task collect_rdata(axi_xtn xtnh);
+xtn4=axi_xtn::type_id::create("xtn4");
+xtn4=xtnh;
+xtn4.cal_raddr();
+xtn4.RDATA=new[xtn.ARLEN+1];
+
+foreach(xtn4.RDATA[i])
+begin
+
+wait(vif.mst_mon_cb.RVALID && vif.mst_mon_cb.RREADY)
+xtn4.RVALID=vif.mst_mon_cb.RVALID;
+xtn4.RREADY=vif.mst_mon_cb.RREADY;
+xtn4.RDATA[i]=vif.mst_mon_cb.RDATA;
+xtn4.RID=vif.mst_mon_cb.RID;
+xtn4.RRESP[i]=vif.mst_mon_cb.RRESP;
+xtn4.RLAST=vif.mst_mon_cb.RLAST;
+end
+
+`uvm_info(get_type_name(),$sformatf("printing from rdata collect task %s",xtn4.sprint()),UVM_LOW)
+ap_port.write(xtn4);
+@(vif.mst_mon_cb);
+endtask
+
+endclass
+
+
+
+
+
+	
+
+
+
+
+
+
+//endclass
+

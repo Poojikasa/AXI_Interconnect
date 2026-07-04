@@ -1,0 +1,32 @@
+class axi_env extends uvm_env;
+`uvm_component_utils(axi_env)
+
+axi_agent_top       axi_top;
+axi_slave_agent_top slv_top;
+sb sbh;
+env_config m_cfg;
+
+function new(string name="axi_env",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+super.build_phase(phase);
+
+if(!uvm_config_db #(env_config)::get(this,"","env_config",m_cfg))
+`uvm_fatal(get_full_name(),"cannot get the config")
+
+if(m_cfg.has_axi_agent)
+axi_top=axi_agent_top::type_id::create("axi_top",this);
+
+if(m_cfg.has_axi_slave_agent)
+slv_top=axi_slave_agent_top::type_id::create("slv_top",this);
+
+if(m_cfg.has_scoreboard)
+sbh=sb::type_id::create("sbh",this);
+
+endfunction
+
+
+endclass
+
