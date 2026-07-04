@@ -1,0 +1,435 @@
+
+`timescale 1ns/1ps
+module top();
+bit clock;
+bit reset;
+
+import test_pkg::*;
+
+	import uvm_pkg::*;
+
+	// Interface Instantiation
+	axi_mif a_mif0(clock,reset);
+	axi_mif a_mif1(clock,reset);
+	axi_mif a_mif2(clock,reset);
+	axi_mif a_mif3(clock,reset);
+	
+	axi_sif a_sif0(clock,reset);
+	axi_sif a_sif1(clock,reset);
+	axi_sif a_sif2(clock,reset);
+	axi_sif a_sif3(clock,reset);
+
+
+	// DUT Instantiation
+axi_interconnect_wrap_4x4 DUV 
+( .clk(clock),.rst(reset),
+  
+ .s00_axi_awid(a_mif0.AWID),
+.s00_axi_awaddr(a_mif0.AWADDR),
+.s00_axi_awlen(a_mif0.AWLEN),
+.s00_axi_awsize(a_mif0.AWSIZE),
+.s00_axi_awburst(a_mif0.AWBURST),
+.s00_axi_awlock(a_mif0.AWLOCK),
+.s00_axi_awcache(a_mif0.AWCACHE),
+.s00_axi_awprot(a_mif0.AWPROT),
+.s00_axi_awqos(a_mif0.AWQOS),
+.s00_axi_awuser(a_mif0.AWUSER),
+.s00_axi_awvalid(a_mif0.AWVALID),
+.s00_axi_awready(a_mif0.AWREADY),
+.s00_axi_wdata(a_mif0.WDATA),
+.s00_axi_wstrb(a_mif0.WSTRB),
+.s00_axi_wlast(a_mif0.WLAST),
+.s00_axi_wuser(a_mif0.WUSER),
+.s00_axi_wvalid(a_mif0.WVALID),
+.s00_axi_wready(a_mif0.WREADY),
+.s00_axi_bid(a_mif0.BID),
+.s00_axi_bresp(a_mif0.BRESP),
+.s00_axi_buser(a_mif0.BUSER),
+.s00_axi_bvalid(a_mif0.BVALID),
+.s00_axi_bready(a_mif0.BREADY),
+.s00_axi_arid(a_mif0.ARID),
+.s00_axi_araddr(a_mif0.ARADDR),
+.s00_axi_arlen(a_mif0.ARLEN),
+.s00_axi_arsize(a_mif0.ARSIZE),
+.s00_axi_arburst(a_mif0.ARBURST),
+.s00_axi_arlock(a_mif0.ARLOCK),
+.s00_axi_arcache(a_mif0.ARCACHE),
+.s00_axi_arprot(a_mif0.ARPROT),
+.s00_axi_arqos(a_mif0.ARQOS),
+.s00_axi_aruser(a_mif0.ARUSER),
+.s00_axi_arvalid(a_mif0.ARVALID),
+.s00_axi_arready(a_mif0.ARREADY),
+.s00_axi_rid(a_mif0.RID),
+.s00_axi_rdata(a_mif0.RDATA),
+.s00_axi_rresp(a_mif0.RRESP),
+.s00_axi_rlast(a_mif0.RLAST),
+.s00_axi_ruser(a_mif0.RUSER),
+.s00_axi_rvalid(a_mif0.RVALID),
+.s00_axi_rready(a_mif0.RREADY),
+
+.s01_axi_awid(a_mif1.AWID),
+.s01_axi_awaddr(a_mif1.AWADDR),
+.s01_axi_awlen(a_mif1.AWLEN),
+.s01_axi_awsize(a_mif1.AWSIZE),
+.s01_axi_awburst(a_mif1.AWBURST),
+.s01_axi_awlock(a_mif1.AWLOCK),
+.s01_axi_awcache(a_mif1.AWCACHE),
+.s01_axi_awprot(a_mif1.AWPROT),
+.s01_axi_awqos(a_mif1.AWQOS),
+.s01_axi_awuser(a_mif1.AWUSER),
+.s01_axi_awvalid(a_mif1.AWVALID),
+.s01_axi_awready(a_mif1.AWREADY),
+.s01_axi_wdata(a_mif1.WDATA),
+.s01_axi_wstrb(a_mif1.WSTRB),
+.s01_axi_wlast(a_mif1.WLAST),
+.s01_axi_wuser(a_mif1.WUSER),
+.s01_axi_wvalid(a_mif1.WVALID),
+.s01_axi_wready(a_mif1.WREADY),
+.s01_axi_bid(a_mif1.BID),
+.s01_axi_bresp(a_mif1.BRESP),
+.s01_axi_buser(a_mif1.BUSER),
+.s01_axi_bvalid(a_mif1.BVALID),
+.s01_axi_bready(a_mif1.BREADY),
+.s01_axi_arid(a_mif1.ARID),
+.s01_axi_araddr(a_mif1.ARADDR),
+.s01_axi_arlen(a_mif1.ARLEN),
+.s01_axi_arsize(a_mif1.ARSIZE),
+.s01_axi_arburst(a_mif1.ARBURST),
+.s01_axi_arlock(a_mif1.ARLOCK),
+.s01_axi_arcache(a_mif1.ARCACHE),
+.s01_axi_arprot(a_mif1.ARPROT),
+.s01_axi_arqos(a_mif1.ARQOS),
+.s01_axi_aruser(a_mif1.ARUSER),
+.s01_axi_arvalid(a_mif1.ARVALID),
+.s01_axi_arready(a_mif1.ARREADY),
+.s01_axi_rid(a_mif1.RID),
+.s01_axi_rdata(a_mif1.RDATA),
+.s01_axi_rresp(a_mif1.RRESP),
+.s01_axi_rlast(a_mif1.RLAST),
+.s01_axi_ruser(a_mif1.RUSER),
+.s01_axi_rvalid(a_mif1.RVALID),
+.s01_axi_rready(a_mif1.RREADY),
+
+.s02_axi_awid(a_mif2.AWID),
+.s02_axi_awaddr(a_mif2.AWADDR),
+.s02_axi_awlen(a_mif2.AWLEN),
+.s02_axi_awsize(a_mif2.AWSIZE),
+.s02_axi_awburst(a_mif2.AWBURST),
+.s02_axi_awlock(a_mif2.AWLOCK),
+.s02_axi_awcache(a_mif2.AWCACHE),
+.s02_axi_awprot(a_mif2.AWPROT),
+.s02_axi_awqos(a_mif2.AWQOS),
+.s02_axi_awuser(a_mif2.AWUSER),
+.s02_axi_awvalid(a_mif2.AWVALID),
+.s02_axi_awready(a_mif2.AWREADY),
+.s02_axi_wdata(a_mif2.WDATA),
+.s02_axi_wstrb(a_mif2.WSTRB),
+.s02_axi_wlast(a_mif2.WLAST),
+.s02_axi_wuser(a_mif2.WUSER),
+.s02_axi_wvalid(a_mif2.WVALID),
+.s02_axi_wready(a_mif2.WREADY),
+.s02_axi_bid(a_mif2.BID),
+.s02_axi_bresp(a_mif2.BRESP),
+.s02_axi_buser(a_mif2.BUSER),
+.s02_axi_bvalid(a_mif2.BVALID),
+.s02_axi_bready(a_mif2.BREADY),
+.s02_axi_arid(a_mif2.ARID),
+.s02_axi_araddr(a_mif2.ARADDR),
+.s02_axi_arlen(a_mif2.ARLEN),
+.s02_axi_arsize(a_mif2.ARSIZE),
+.s02_axi_arburst(a_mif2.ARBURST),
+.s02_axi_arlock(a_mif2.ARLOCK),
+.s02_axi_arcache(a_mif2.ARCACHE),
+.s02_axi_arprot(a_mif2.ARPROT),
+.s02_axi_arqos(a_mif2.ARQOS),
+.s02_axi_aruser(a_mif2.ARUSER),
+.s02_axi_arvalid(a_mif2.ARVALID),
+.s02_axi_arready(a_mif2.ARREADY),
+.s02_axi_rid(a_mif2.RID),
+.s02_axi_rdata(a_mif2.RDATA),
+.s02_axi_rresp(a_mif2.RRESP),
+.s02_axi_rlast(a_mif2.RLAST),
+.s02_axi_ruser(a_mif2.RUSER),
+.s02_axi_rvalid(a_mif2.RVALID),
+.s02_axi_rready(a_mif2.RREADY),
+
+.s03_axi_awid(a_mif3.AWID),
+.s03_axi_awaddr(a_mif3.AWADDR),
+.s03_axi_awlen(a_mif3.AWLEN),
+.s03_axi_awsize(a_mif3.AWSIZE),
+.s03_axi_awburst(a_mif3.AWBURST),
+.s03_axi_awlock(a_mif3.AWLOCK),
+.s03_axi_awcache(a_mif3.AWCACHE),
+.s03_axi_awprot(a_mif3.AWPROT),
+.s03_axi_awqos(a_mif3.AWQOS),
+.s03_axi_awuser(a_mif3.AWUSER),
+.s03_axi_awvalid(a_mif3.AWVALID),
+.s03_axi_awready(a_mif3.AWREADY),
+.s03_axi_wdata(a_mif3.WDATA),
+.s03_axi_wstrb(a_mif3.WSTRB),
+.s03_axi_wlast(a_mif3.WLAST),
+.s03_axi_wuser(a_mif3.WUSER),
+.s03_axi_wvalid(a_mif3.WVALID),
+.s03_axi_wready(a_mif3.WREADY),
+.s03_axi_bid(a_mif3.BID),
+.s03_axi_bresp(a_mif3.BRESP),
+.s03_axi_buser(a_mif3.BUSER),
+.s03_axi_bvalid(a_mif3.BVALID),
+.s03_axi_bready(a_mif3.BREADY),
+.s03_axi_arid(a_mif3.ARID),
+.s03_axi_araddr(a_mif3.ARADDR),
+.s03_axi_arlen(a_mif3.ARLEN),
+.s03_axi_arsize(a_mif3.ARSIZE),
+.s03_axi_arburst(a_mif3.ARBURST),
+.s03_axi_arlock(a_mif3.ARLOCK),
+.s03_axi_arcache(a_mif3.ARCACHE),
+.s03_axi_arprot(a_mif3.ARPROT),
+.s03_axi_arqos(a_mif3.ARQOS),
+.s03_axi_aruser(a_mif3.ARUSER),
+.s03_axi_arvalid(a_mif3.ARVALID),
+.s03_axi_arready(a_mif3.ARREADY),
+.s03_axi_rid(a_mif3.RID),
+.s03_axi_rdata(a_mif3.RDATA),
+.s03_axi_rresp(a_mif3.RRESP),
+.s03_axi_rlast(a_mif3.RLAST),
+.s03_axi_ruser(a_mif3.RUSER),
+.s03_axi_rvalid(a_mif3.RVALID),
+.s03_axi_rready(a_mif3.RREADY),
+
+.m00_axi_awid(a_sif0.AWID),
+.m00_axi_awaddr(a_sif0.AWADDR),
+.m00_axi_awlen(a_sif0.AWLEN),
+.m00_axi_awsize(a_sif0.AWSIZE),
+.m00_axi_awburst(a_sif0.AWBURST),
+.m00_axi_awlock(a_sif0.AWLOCK),
+.m00_axi_awcache(a_sif0.AWCACHE),
+.m00_axi_awprot(a_sif0.AWPROT),
+.m00_axi_awqos(a_sif0.AWQOS),
+.m00_axi_awregion(a_sif0.AWREGION),
+.m00_axi_awuser(a_sif0.AWUSER),
+.m00_axi_awvalid(a_sif0.AWVALID),
+.m00_axi_awready(a_sif0.AWREADY),
+.m00_axi_wdata(a_sif0.WDATA),
+.m00_axi_wstrb(a_sif0.WSTRB),
+.m00_axi_wlast(a_sif0.WLAST),
+.m00_axi_wuser(a_sif0.WUSER),
+.m00_axi_wvalid(a_sif0.WVALID),
+.m00_axi_wready(a_sif0.WREADY),
+.m00_axi_bid(a_sif0.BID),
+.m00_axi_bresp(a_sif0.BRESP),
+.m00_axi_buser(a_sif0.BUSER),
+.m00_axi_bvalid(a_sif0.BVALID),
+.m00_axi_bready(a_sif0.BREADY),
+.m00_axi_arid(a_sif0.ARID),
+.m00_axi_araddr(a_sif0.ARADDR),
+.m00_axi_arlen(a_sif0.ARLEN),
+.m00_axi_arsize(a_sif0.ARSIZE),
+.m00_axi_arburst(a_sif0.ARBURST),
+.m00_axi_arlock(a_sif0.ARLOCK),
+.m00_axi_arcache(a_sif0.ARCACHE),
+.m00_axi_arprot(a_sif0.ARPROT),
+.m00_axi_arqos(a_sif0.ARQOS),
+.m00_axi_arregion(a_sif0.ARREGION),
+.m00_axi_aruser(a_sif0.ARUSER),
+.m00_axi_arvalid(a_sif0.ARVALID),
+.m00_axi_arready(a_sif0.ARREADY),
+.m00_axi_rid(a_sif0.RID),
+.m00_axi_rdata(a_sif0.RDATA),
+.m00_axi_rresp(a_sif0.RRESP),
+.m00_axi_rlast(a_sif0.RLAST),
+.m00_axi_ruser(a_sif0.RUSER),
+.m00_axi_rvalid(a_sif0.RVALID),
+.m00_axi_rready(a_sif0.RREADY),
+
+.m01_axi_awid(a_sif1.AWID),
+.m01_axi_awaddr(a_sif1.AWADDR),
+.m01_axi_awlen(a_sif1.AWLEN),
+.m01_axi_awsize(a_sif1.AWSIZE),
+.m01_axi_awburst(a_sif1.AWBURST),
+.m01_axi_awlock(a_sif1.AWLOCK),
+.m01_axi_awcache(a_sif1.AWCACHE),
+.m01_axi_awprot(a_sif1.AWPROT),
+.m01_axi_awqos(a_sif1.AWQOS),
+.m01_axi_awregion(a_sif1.AWREGION),
+.m01_axi_awuser(a_sif1.AWUSER),
+.m01_axi_awvalid(a_sif1.AWVALID),
+.m01_axi_awready(a_sif1.AWREADY),
+.m01_axi_wdata(a_sif1.WDATA),
+.m01_axi_wstrb(a_sif1.WSTRB),
+.m01_axi_wlast(a_sif1.WLAST),
+.m01_axi_wuser(a_sif1.WUSER),
+.m01_axi_wvalid(a_sif1.WVALID),
+.m01_axi_wready(a_sif1.WREADY),
+.m01_axi_bid(a_sif1.BID),
+.m01_axi_bresp(a_sif1.BRESP),
+.m01_axi_buser(a_sif1.BUSER),
+.m01_axi_bvalid(a_sif1.BVALID),
+.m01_axi_bready(a_sif1.BREADY),
+.m01_axi_arid(a_sif1.ARID),
+.m01_axi_araddr(a_sif1.ARADDR),
+.m01_axi_arlen(a_sif1.ARLEN),
+.m01_axi_arsize(a_sif1.ARSIZE),
+.m01_axi_arburst(a_sif1.ARBURST),
+.m01_axi_arlock(a_sif1.ARLOCK),
+.m01_axi_arcache(a_sif1.ARCACHE),
+.m01_axi_arprot(a_sif1.ARPROT),
+.m01_axi_arqos(a_sif1.ARQOS),
+.m01_axi_arregion(a_sif1.ARREGION),
+.m01_axi_aruser(a_sif1.ARUSER),
+.m01_axi_arvalid(a_sif1.ARVALID),
+.m01_axi_arready(a_sif1.ARREADY),
+.m01_axi_rid(a_sif1.RID),
+.m01_axi_rdata(a_sif1.RDATA),
+.m01_axi_rresp(a_sif1.RRESP),
+.m01_axi_rlast(a_sif1.RLAST),
+.m01_axi_ruser(a_sif1.RUSER),
+.m01_axi_rvalid(a_sif1.RVALID),
+.m01_axi_rready(a_sif1.RREADY),
+
+.m02_axi_awid(a_sif2.AWID),
+.m02_axi_awaddr(a_sif2.AWADDR),
+.m02_axi_awlen(a_sif2.AWLEN),
+.m02_axi_awsize(a_sif2.AWSIZE),
+.m02_axi_awburst(a_sif2.AWBURST),
+.m02_axi_awlock(a_sif2.AWLOCK),
+.m02_axi_awcache(a_sif2.AWCACHE),
+.m02_axi_awprot(a_sif2.AWPROT),
+.m02_axi_awqos(a_sif2.AWQOS),
+.m02_axi_awregion(a_sif2.AWREGION),
+.m02_axi_awuser(a_sif2.AWUSER),
+.m02_axi_awvalid(a_sif2.AWVALID),
+.m02_axi_awready(a_sif2.AWREADY),
+.m02_axi_wdata(a_sif2.WDATA),
+.m02_axi_wstrb(a_sif2.WSTRB),
+.m02_axi_wlast(a_sif2.WLAST),
+.m02_axi_wuser(a_sif2.WUSER),
+.m02_axi_wvalid(a_sif2.WVALID),
+.m02_axi_wready(a_sif2.WREADY),
+.m02_axi_bid(a_sif2.BID),
+.m02_axi_bresp(a_sif2.BRESP),
+.m02_axi_buser(a_sif2.BUSER),
+.m02_axi_bvalid(a_sif2.BVALID),
+.m02_axi_bready(a_sif2.BREADY),
+.m02_axi_arid(a_sif2.ARID),
+.m02_axi_araddr(a_sif2.ARADDR),
+.m02_axi_arlen(a_sif2.ARLEN),
+.m02_axi_arsize(a_sif2.ARSIZE),
+.m02_axi_arburst(a_sif2.ARBURST),
+.m02_axi_arlock(a_sif2.ARLOCK),
+.m02_axi_arcache(a_sif2.ARCACHE),
+.m02_axi_arprot(a_sif2.ARPROT),
+.m02_axi_arqos(a_sif2.ARQOS),
+.m02_axi_arregion(a_sif2.ARREGION),
+.m02_axi_aruser(a_sif2.ARUSER),
+.m02_axi_arvalid(a_sif2.ARVALID),
+.m02_axi_arready(a_sif2.ARREADY),
+.m02_axi_rid(a_sif2.RID),
+.m02_axi_rdata(a_sif2.RDATA),
+.m02_axi_rresp(a_sif2.RRESP),
+.m02_axi_rlast(a_sif2.RLAST),
+.m02_axi_ruser(a_sif2.RUSER),
+.m02_axi_rvalid(a_sif2.RVALID),
+.m02_axi_rready(a_sif2.RREADY),
+
+.m03_axi_awid(a_sif3.AWID),
+.m03_axi_awaddr(a_sif3.AWADDR),
+.m03_axi_awlen(a_sif3.AWLEN),
+.m03_axi_awsize(a_sif3.AWSIZE),
+.m03_axi_awburst(a_sif3.AWBURST),
+.m03_axi_awlock(a_sif3.AWLOCK),
+.m03_axi_awcache(a_sif3.AWCACHE),
+.m03_axi_awprot(a_sif3.AWPROT),
+.m03_axi_awqos(a_sif3.AWQOS),
+.m03_axi_awregion(a_sif3.AWREGION),
+.m03_axi_awuser(a_sif3.AWUSER),
+.m03_axi_awvalid(a_sif3.AWVALID),
+.m03_axi_awready(a_sif3.AWREADY),
+.m03_axi_wdata(a_sif3.WDATA),
+.m03_axi_wstrb(a_sif3.WSTRB),
+.m03_axi_wlast(a_sif3.WLAST),
+.m03_axi_wuser(a_sif3.WUSER),
+.m03_axi_wvalid(a_sif3.WVALID),
+.m03_axi_wready(a_sif3.WREADY),
+.m03_axi_bid(a_sif3.BID),
+.m03_axi_bresp(a_sif3.BRESP),
+.m03_axi_buser(a_sif3.BUSER),
+.m03_axi_bvalid(a_sif3.BVALID),
+.m03_axi_bready(a_sif3.BREADY),
+.m03_axi_arid(a_sif3.ARID),
+.m03_axi_araddr(a_sif3.ARADDR),
+.m03_axi_arlen(a_sif3.ARLEN),
+.m03_axi_arsize(a_sif3.ARSIZE),
+.m03_axi_arburst(a_sif3.ARBURST),
+.m03_axi_arlock(a_sif3.ARLOCK),
+.m03_axi_arcache(a_sif3.ARCACHE),
+.m03_axi_arprot(a_sif3.ARPROT),
+.m03_axi_arqos(a_sif3.ARQOS),
+.m03_axi_arregion(a_sif3.ARREGION),
+.m03_axi_aruser(a_sif3.ARUSER),
+.m03_axi_arvalid(a_sif3.ARVALID),
+.m03_axi_arready(a_sif3.ARREADY),
+.m03_axi_rid(a_sif3.RID),
+.m03_axi_rdata(a_sif3.RDATA),
+.m03_axi_rresp(a_sif3.RRESP),
+.m03_axi_rlast(a_sif3.RLAST),
+.m03_axi_ruser(a_sif3.RUSER),
+.m03_axi_rvalid(a_sif3.RVALID),
+.m03_axi_rready(a_sif3.RREADY));
+
+
+
+
+
+
+
+
+ 
+
+   initial
+      begin
+        reset=1;
+        #20
+        reset=0;
+      end
+
+	initial
+		begin
+			clock =1'b0;
+			forever
+			#5 clock =~clock;
+		end
+
+
+
+	initial
+	  begin
+
+                       `ifdef VCS
+                                $fsdbDumpvars(0, top);
+                                $fsdbDumpSVA(0, top);
+                        `endif
+
+		
+		// Set Virtual Interface
+		uvm_config_db #(virtual axi_mif) :: set(null, "*", "axi_mif_0", a_mif0);
+		uvm_config_db #(virtual axi_mif) :: set(null, "*", "axi_mif_1", a_mif1);
+		uvm_config_db #(virtual axi_mif) :: set(null, "*", "axi_mif_2", a_mif2);
+		uvm_config_db #(virtual axi_mif) :: set(null, "*", "axi_mif_3", a_mif3);
+
+		uvm_config_db #(virtual axi_sif) :: set(null, "*", "axi_sif_0", a_sif0);
+		uvm_config_db #(virtual axi_sif) :: set(null, "*", "axi_sif_1", a_sif1);
+		uvm_config_db #(virtual axi_sif) :: set(null, "*", "axi_sif_2", a_sif2);
+		uvm_config_db #(virtual axi_sif) :: set(null, "*", "axi_sif_3", a_sif3);
+			//Call Run Test
+		run_test();
+	  end
+
+	
+endmodule
+
+
+
+
+
+
+
