@@ -1,0 +1,9 @@
+class axi_slave_seqs extends uvm_sequence#(axi_xtn);
+`uvm_object_utils(axi_slave_seqs)
+
+
+
+function new(string name="axi_slave_seqs");
+super.new(name);
+endfunction
+endclass

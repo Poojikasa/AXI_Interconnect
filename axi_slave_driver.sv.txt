@@ -1,0 +1,258 @@
+class axi_slave_driver extends uvm_driver#(axi_xtn);
+`uvm_component_utils(axi_slave_driver)
+
+virtual axi_sif.SLV_DRV sif;
+axi_slave_config slv_cfg;
+axi_xtn q1[$],q2[$],q3[$];
+axi_xtn xtn,xtn1;
+
+
+//virtual axi_sif.SLV_DRV sif;
+
+semaphore wr_addc=new(1); //write address channel
+semaphore wr_datac=new(1); //write data channel
+semaphore wr_respc=new(1); //write response channel
+semaphore rd_adc=new(1); //read address channel
+semaphore rd_datac=new(1); //read data channel
+semaphore sem1=new(); //write address dependent channel
+semaphore sem2=new(); //write response dependent channel
+semaphore sem3=new(); //read data dependent channel
+
+function new(string name="axi_slave_driver",uvm_component parent);
+super.new(name,parent);
+endfunction
+
+function void build_phase(uvm_phase phase);
+super.build_phase(phase);
+if(!uvm_config_db #(axi_slave_config)::get(this,"","axi_slave_config",slv_cfg))
+`uvm_fatal("axi_agent","cannot get axi_agent")
+endfunction
+
+function void connect_phase(uvm_phase phase);
+super.connect_phase(phase);
+ sif=slv_cfg.sif;
+endfunction
+
+task run_phase(uvm_phase phase);
+/*@(sif.slv_drv_cb);
+sif.slv_drv_cb.reset<=1'b0;
+@(sif.slv_drv_cb);
+sif.slv_drv_cb.reset<=1'b1;
+
+
+req=axi_xtn::type_id::create("req");*/
+forever
+begin
+//seq_item_port.get_next_item(req);
+send_to_dut();
+`uvm_info(get_type_name(),$sformatf("Printing from driver %s",xtn.sprint()),UVM_LOW)
+//seq_item_port.item_done();
+//req.print();
+
+end
+endtask
+
+task send_to_dut();
+xtn=axi_xtn::type_id::create("xtn");
+
+fork
+begin
+
+wr_addc.get(1);
+drive_awaddr(xtn);//write address channel
+sem1.put(1);
+wr_addc.put(1);
+end
+
+begin
+wr_datac.get(1);
+sem1.get(1);
+drive_wdata(q1.pop_front());//write data channel
+sem2.put(1);
+wr_datac.put(1);
+end
+
+begin
+wr_respc.get(1);
+sem2.get(1);
+drive_wresp(q2.pop_front());//write response channel
+//sem2.put(1);
+wr_respc.put(1);
+end
+
+begin
+rd_adc.get(1);
+drive_araddr(xtn1); //read address channel
+sem3.put(1);
+rd_adc.put(1);
+end
+
+begin
+rd_datac.get(1);
+sem3.get(1);
+drive_rddata(q3.pop_front()); //read data channel
+rd_datac.put(1);
+end
+join_any
+endtask
+
+task drive_awaddr(axi_xtn xtn);
+`uvm_info(get_type_name(),"start of slave driver write address",UVM_LOW)
+repeat($urandom_range(1,5))
+@(sif.slv_drv_cb);
+      sif.slv_drv_cb.AWREADY<=1;
+@(sif.slv_drv_cb);
+    wait(sif.slv_drv_cb.AWVALID);
+    
+xtn.AWID=sif.slv_drv_cb.AWID;
+xtn.AWLEN=sif.slv_drv_cb.AWLEN;
+xtn.AWSIZE=sif.slv_drv_cb.AWSIZE;
+xtn.AWBURST=sif.slv_drv_cb.AWBURST;
+xtn.AWVALID=sif.slv_drv_cb.AWVALID;
+xtn.AWADDR=sif.slv_drv_cb.AWADDR;
+
+q1.push_back(xtn);
+q2.push_back(xtn);
+//sif.slv_drv_cb.AWREADY<=0;
+
+repeat($urandom_range(1,5))
+@(sif.slv_drv_cb);
+
+sif.slv_drv_cb.AWREADY<=0;
+`uvm_info(get_type_name(),"end of slave driver write address",UVM_LOW)
+
+endtask
+
+
+task drive_wdata(axi_xtn xtn);
+int mem[int];
+`uvm_info(get_type_name(),"start of slave driver write address",UVM_LOW)
+
+xtn.cal_addr();
+`uvm_info(get_type_name(),$sformatf("aligned:%h",xtn.aligned_addr),UVM_LOW)
+`uvm_info(get_type_name(),$sformatf("address calculated in slave side are %p",xtn.addr),UVM_LOW)
+        for(int i=0;i<(xtn.AWLEN+1);i++)
+        begin
+        sif.slv_drv_cb.WREADY<=1;
+        @(sif.slv_drv_cb);
+        wait(sif.slv_drv_cb.WVALID)
+`uvm_info(get_type_name(),$sformatf("WSTRB in slave driver is :%p",sif.slv_drv_cb.WSTRB),UVM_LOW)
+
+       if(sif.slv_drv_cb.WSTRB==15)
+        mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA;
+if(sif.slv_drv_cb.WSTRB==8)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[31:24];
+if(sif.slv_drv_cb.WSTRB==4)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[23:16];
+         
+if(sif.slv_drv_cb.WSTRB==2)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[15:8];
+if(sif.slv_drv_cb.WSTRB==1)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[7:0];
+         
+if(sif.slv_drv_cb.WSTRB==7)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[23:0];
+
+if(sif.slv_drv_cb.WSTRB==14)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[31:8];
+if(sif.slv_drv_cb.WSTRB==12)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[31:16];
+         
+if(sif.slv_drv_cb.WSTRB==3)
+         mem[xtn.addr[i]]=sif.slv_drv_cb.WDATA[15:0];
+
+`uvm_info(get_type_name(),$sformatf("memory is %p",mem[xtn.addr[i]]),UVM_LOW)
+sif.slv_drv_cb.WREADY<=0;
+
+repeat($urandom_range(1,5))
+@(sif.slv_drv_cb);
+
+end
+`uvm_info(get_type_name(),$sformatf("memory is %p",mem),UVM_LOW)
+`uvm_info(get_type_name(),"end of slave driver wdata",UVM_LOW)
+endtask
+
+
+       
+task drive_wresp(axi_xtn xtn);
+`uvm_info(get_type_name(),"start of slave drive_WRESPONSE",UVM_LOW)
+sif.slv_drv_cb.BVALID<=1;
+
+sif.slv_drv_cb.BRESP<=0;
+sif.slv_drv_cb.BID<=xtn.AWID;
+`uvm_info(get_type_name(),$sformatf("BID sent is %d",xtn.AWID),UVM_LOW)
+@(sif.slv_drv_cb);
+wait(sif.slv_drv_cb.BREADY==1)
+@(sif.slv_drv_cb);
+    sif.slv_drv_cb.BVALID<=0;
+    sif.slv_drv_cb.BRESP<='hx;
+
+repeat($urandom_range(1,5))
+       @(sif.slv_drv_cb);
+`uvm_info(get_type_name(),"end OF slave drive_WRESPONSE",UVM_LOW)
+endtask
+
+task drive_araddr(axi_xtn xtn1);
+`uvm_info(get_type_name(),"start of slave RDADRESS",UVM_LOW)
+
+xtn1=axi_xtn::type_id::create("xtn1");
+@(sif.slv_drv_cb);
+sif.slv_drv_cb.ARREADY<=1;
+//@(sif.slv_drv_cb);
+
+wait(sif.slv_drv_cb.ARVALID)
+
+xtn1.ARID=sif.slv_drv_cb.ARID;
+xtn1.ARLEN=sif.slv_drv_cb.ARLEN;
+xtn1.ARSIZE=sif.slv_drv_cb.ARSIZE;
+xtn1.ARBURST=sif.slv_drv_cb.ARBURST;
+xtn1.ARADDR=sif.slv_drv_cb.ARADDR;
+
+//sif.slv_drv_cb.ARREADY<=0;
+q3.push_back(xtn1);
+repeat($urandom_range(1,5))
+@(sif.slv_drv_cb);
+sif.slv_drv_cb.ARREADY<=0;
+`uvm_info(get_type_name(),"END OF slave ARADDR",UVM_LOW)
+endtask
+
+task drive_rddata(axi_xtn xtn1);
+int len=xtn1.ARLEN;
+
+`uvm_info(get_type_name(),"start of slave RDDATA",UVM_LOW)
+$display("aligned :\h",xtn1.aligned_addr);
+$display("addresses calculated in slave side %p",xtn1.addr);
+for(int i=0;i<len+1;i++)
+    begin
+	sif.slv_drv_cb.RVALID<=1;
+        sif.slv_drv_cb.RDATA<=$urandom;
+
+//sif.slv_drv_cb.RVALID<=1;                   //drive task for rddata
+sif.slv_drv_cb.RID<=xtn1.ARID;
+sif.slv_drv_cb.RRESP<=0;
+
+if(i==(len))
+sif.slv_drv_cb.RLAST<=1'b1;
+else
+sif.slv_drv_cb.RLAST<=1'b0;
+@(sif.slv_drv_cb);
+
+wait(sif.slv_drv_cb.RREADY)
+sif.slv_drv_cb.RVALID<=0;
+sif.slv_drv_cb.RLAST<=0;
+sif.slv_drv_cb.RRESP<='hz;
+
+
+repeat($urandom_range(1,5))
+@(sif.slv_drv_cb);
+//sif.slv_drv_cb.RREADY<=0;
+
+`uvm_info(get_type_name(),"end of master driver's RDDATA",UVM_LOW)
+end
+endtask
+
+
+
+
+endclass
+
